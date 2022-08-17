@@ -7,6 +7,9 @@
 	<hook>class</hook>
 	<triggers>postview</triggers>
 	<parameters>
-		<param name="api_key" title="API Key (Piste)" type="text"  defaultValue="" required="true" />
+		<param name="authurl" title="Auth URL" type="text" defaultValue="https://oauth.piste.gouv.fr/api/oauth/token" required="true" />
+		<param name="apiurl" title="API URL" type="text" defaultValue="https://api.piste.gouv.fr/dila/legifrance-beta/lf-engine-app/consult/juri" required="true" />
+		<param name="clientid" title="Client ID" type="text" defaultValue="" required="true" />
+		<param name="clientsecret" title="Client Secret" type="text" defaultValue="" required="true" />
 	</parameters>
 </LodelPlugin>

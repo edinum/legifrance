@@ -10,23 +10,63 @@ function createButton(target, handler) {
   return button;
 }
 
-function request(apikey, textId) {
+function requestToken(callback) {
+  var xhr = new XMLHttpRequest();
+  xhr.onreadystatechange = function() {
+    if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status !== 200) {
+        alert("Erreur lors de l'authentification à l'API Piste (" + xhr.status + ")");
+        return;
+      } 
+      var response = JSON.parse(xhr.responseText);
+      var token = response.access_token;
+      var duration = response.expires_in;
+      storeToken(token, duration);
+      if (typeof callback === "function") {
+        callback(token);
+      }
+    }
+  };
+  xhr.open("POST", window.pisteUrls.auth);
+  xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
+  var clientId = window.pisteClient.id;
+  var clientSecret = window.pisteClient.secret;
+	var params = "grant_type=client_credentials&client_id=" + clientId + "&client_secret=" + clientSecret + "&scope=openid";
+  xhr.send(encodeURI(params));
+}
+
+function storeToken(token, duration) {
+  var expirationDate = Date.now() + (duration * 1000);
+  window.localStorage.setItem("pisteToken", token);
+  window.localStorage.setItem("pisteTokenExpirationDate", expirationDate);
+}
+
+function getToken(callback) {
+  var expirationDate = window.localStorage.getItem("pisteTokenExpirationDate");
+  if (Date.now() < expirationDate) {
+    var token = window.localStorage.getItem("pisteToken");
+    return callback(token);
+  }
+  return requestToken(callback)
+}
+
+function requestData(token, textId) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState === XMLHttpRequest.DONE) {
       if (xhr.status !== 200) {
         alert("Erreur lors de la recherche Légifrance (" + xhr.status + ")");
-      } else {
-        var response = JSON.parse(xhr.responseText);
-        populateFields(textId, response.text);
-      }
+        return;
+      } 
+      var response = JSON.parse(xhr.responseText);
+      populateFields(textId, response.text);
     }
   };
-  // TODO: use production, not sandbox
-  xhr.open("POST", "https://sandbox-api.piste.gouv.fr/dila/legifrance-beta/lf-engine-app/consult/juri");
+  var apiUrl = window.pisteUrls.api;
+  xhr.open("POST", apiUrl);
   xhr.setRequestHeader("accept", "application/json");
   xhr.setRequestHeader("Content-Type", "application/json");
-  xhr.setRequestHeader("Authorization", "Bearer " + apikey);
+  xhr.setRequestHeader("Authorization", "Bearer " + token);
   xhr.send(JSON.stringify({ "textId": textId }));
 }
 
@@ -54,14 +94,22 @@ function populateFields(textId, data) {
   });
 }
 
-// Main
-var apikey = document.currentScript.getAttribute("data-apikey");
-var input = document.getElementById("numerolegifrance");
-
-var handler = function() {
+function clickHandler() {
   var numerolegifrance = window.prompt("Numéro Légifrance", input.value);
   if (!numerolegifrance) return;
-  request(apikey, numerolegifrance);
+  getToken(function(token) {
+    requestData(token, numerolegifrance);
+  });
 }
 
-var button = createButton(input, handler);
+// Main
+window.pisteClient = {
+  id: document.currentScript.getAttribute("data-clientid"),
+  secret: document.currentScript.getAttribute("data-clientsecret")
+};
+window.pisteUrls = {
+  auth: document.currentScript.getAttribute("data-authurl"),
+  api: document.currentScript.getAttribute("data-apiurl")
+}
+var input = document.getElementById("numerolegifrance");
+var button = createButton(input, clickHandler);
