@@ -10,10 +10,20 @@ function createButton(target, handler) {
   return button;
 }
 
-function requestToken(callback) {
+function requestToken(callback, remainingAttempts) {
+  if (remainingAttempts == null) remainingAttempts = 5;
+
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState === XMLHttpRequest.DONE) {
+      if (xhr.status === 400) {
+        if (remainingAttempts < 1) {
+          alert("Erreur lors de l'authentification à l'API Piste : nombre de tentatives dépassé (" + xhr.status + ")");
+          return;
+        }
+        console.log("requestToken : nouvelle tentative (reste " + Number(remainingAttempts - 1) + ")");
+        return requestToken(callback, remainingAttempts - 1);
+      }
       if (xhr.status !== 200) {
         alert("Erreur lors de l'authentification à l'API Piste (" + xhr.status + ")");
         return;
