@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<LodelPlugin>
+	<title>legifrance</title>
+	<description>Enrichissement assisté de décisions de justice (Alyoda) avec l'API Légifrance.</description>
+	<sql>0</sql>
+	<hookType>class</hookType>
+	<hook>class</hook>
+	<triggers>postview</triggers>
+	<parameters>
+		<param name="api_key" title="API Key (Piste)" type="text"  defaultValue="" required="true" />
+	</parameters>
+</LodelPlugin>
