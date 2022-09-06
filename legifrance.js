@@ -97,11 +97,27 @@ function populateFields(textId, data) {
       var select = document.querySelector("#entries_codepublication select");
       select.value = value;
     } else if (key === "entries_juridictions") {
-      // TODO
+      var select = document.querySelector("#entries_juridictions select");
+      var normalized = normalizeJuridiction(value);
+      console.log(select, normalized);
+      select.value = normalized;
     } else {
       document.getElementById(key).value = value;
     }
   });
+}
+
+function normalizeJuridiction(value) {
+  return value
+    // Capitalize
+    .replace(/[\w-]+$/, function(match) {
+      return match.split("-").map(function(str) {
+        return str.charAt(0).toUpperCase() + str.toLowerCase().slice(1);
+      }).join("-");
+    })
+    .replace(/CAA de/i, "CAA")
+    .replace(/Conseil d.[ÉE]tat/i, "CE")
+    .replace(/Tribunal administratif/i, "TA");
 }
 
 function clickHandler() {
