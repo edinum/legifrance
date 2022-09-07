@@ -64,10 +64,13 @@ function requestData(token, textId) {
   var xhr = new XMLHttpRequest();
   xhr.onreadystatechange = function() {
     if (xhr.readyState === XMLHttpRequest.DONE) {
-      if (xhr.status !== 200) {
+      if (xhr.status === 400) {
+        alert("Erreur : numéro introuvable");
+        return;
+      } else if (xhr.status !== 200) {
         alert("Erreur lors de la recherche Légifrance (" + xhr.status + ")");
         return;
-      } 
+      }
       var response = JSON.parse(xhr.responseText);
       populateFields(textId, response.text);
     }
